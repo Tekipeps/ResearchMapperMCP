@@ -137,6 +137,14 @@ function createServer(): McpServer {
         "Given any research topic, synthesizes a complete landscape map: foundational papers, prolific authors & institutions, citation clusters/schools of thought, publication trends, emerging themes, interdisciplinary connections, and strategic insights. Replaces SciVal/InCites analytics.",
       inputSchema,
       outputSchema,
+      _meta: {
+        surface: "both",
+        queryEligible: true,
+        latencyClass: "slow",
+        pricing: {
+          executeUsd: "0.1",
+        },
+      },
     },
     async (args, _extra) => {
       // Race against 28s deadline to stay under CTX 30s SLA
@@ -178,6 +186,23 @@ function createServer(): McpServer {
         const msg = err instanceof Error ? err.message : String(err);
         return {
           content: [{ type: "text" as const, text: `Error: ${msg}` }],
+          structuredContent: {
+            topic: args.topic,
+            generated_at: new Date().toISOString(),
+            summary: `Error: ${msg}`,
+            foundational_papers: [],
+            prolific_authors: [],
+            citation_clusters: [],
+            publication_trends: [],
+            emerging_trends: [],
+            interdisciplinary_connections: [],
+            strategic_insights: [],
+            data_coverage: {
+              total_papers_analyzed: 0,
+              year_range: "",
+              sources: [],
+            },
+          } as unknown as Record<string, unknown>,
           isError: true,
         };
       }
@@ -201,7 +226,7 @@ app.get("/health", (_req, res) => {
 });
 
 // MCP endpoint — POST only (stateless StreamableHTTP)
-app.post("/mcp", async (req, res) => {
+app.post("/mcp", createContextMiddleware(), async (req, res) => {
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined, // stateless
   });
@@ -221,10 +246,16 @@ app.post("/mcp", async (req, res) => {
 
 // SSE / session endpoints — not supported in stateless mode
 app.get("/mcp", (_req, res) => {
-  res.status(405).set("Allow", "POST").json({ error: "SSE not supported in stateless mode" });
+  res
+    .status(405)
+    .set("Allow", "POST")
+    .json({ error: "SSE not supported in stateless mode" });
 });
 app.delete("/mcp", (_req, res) => {
-  res.status(405).set("Allow", "POST").json({ error: "Session management not supported in stateless mode" });
+  res
+    .status(405)
+    .set("Allow", "POST")
+    .json({ error: "Session management not supported in stateless mode" });
 });
 
 app.listen(PORT, () => {
