@@ -4,6 +4,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { createContextMiddleware } from "@ctxprotocol/sdk";
 import { z } from "zod";
 import { mapResearchLandscape } from "./tools/mapLandscape.ts";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 const PORT = parseInt(process.env["PORT"] ?? "3000", 10);
 const GEMINI_API_KEY = process.env["GEMINI_API_KEY"] ?? "";
@@ -169,42 +170,17 @@ function createServer(): McpServer {
           timeoutPromise,
         ]);
 
-        const summary =
-          `# Research Landscape: ${result.topic}\n\n${result.summary}\n\n` +
-          `**Foundational Papers:** ${result.foundational_papers.length} identified\n` +
-          `**Key Authors:** ${result.prolific_authors.length} profiled\n` +
-          `**Citation Clusters:** ${result.citation_clusters.length} identified\n` +
-          `**Emerging Trends:** ${result.emerging_trends.length} detected\n` +
-          `**Papers Analyzed:** ${result.data_coverage.total_papers_analyzed} (${result.data_coverage.year_range})\n\n` +
-          `**Strategic Insights:**\n${result.strategic_insights.map((s, i) => `${i + 1}. ${s}`).join("\n")}`;
-
         return {
-          content: [{ type: "text" as const, text: summary }],
           structuredContent: result as unknown as Record<string, unknown>,
-        };
+          content: [{ type: "text" as const, text: JSON.stringify(result) }],
+        } as unknown as CallToolResult;
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         return {
-          content: [{ type: "text" as const, text: `Error: ${msg}` }],
-          structuredContent: {
-            topic: args.topic,
-            generated_at: new Date().toISOString(),
-            summary: `Error: ${msg}`,
-            foundational_papers: [],
-            prolific_authors: [],
-            citation_clusters: [],
-            publication_trends: [],
-            emerging_trends: [],
-            interdisciplinary_connections: [],
-            strategic_insights: [],
-            data_coverage: {
-              total_papers_analyzed: 0,
-              year_range: "",
-              sources: [],
-            },
-          } as unknown as Record<string, unknown>,
+          structuredContent: { error: true },
+          content: [{ type: "text" as const, text: msg }],
           isError: true,
-        };
+        } as unknown as CallToolResult;
       }
     },
   );
@@ -226,23 +202,27 @@ app.get("/health", (_req, res) => {
 });
 
 // MCP endpoint — POST only (stateless StreamableHTTP)
-app.post("/mcp", createContextMiddleware(), async (req, res) => {
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined, // stateless
-  });
+app.post(
+  "/mcp",
+  // createContextMiddleware(),
+  async (req, res) => {
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined, // stateless
+    });
 
-  try {
-    const server = createServer();
-    await server.connect(transport);
-    await transport.handleRequest(req, res, req.body);
-    res.on("finish", () => server.close());
-  } catch (err) {
-    console.error("MCP handler error:", err);
-    if (!res.headersSent) {
-      res.status(500).json({ error: "Internal server error" });
+    try {
+      const server = createServer();
+      await server.connect(transport);
+      await transport.handleRequest(req, res, req.body);
+      res.on("finish", () => server.close());
+    } catch (err) {
+      console.error("MCP handler error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Internal server error" });
+      }
     }
-  }
-});
+  },
+);
 
 // SSE / session endpoints — not supported in stateless mode
 app.get("/mcp", (_req, res) => {
