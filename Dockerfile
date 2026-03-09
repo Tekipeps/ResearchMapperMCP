@@ -8,9 +8,11 @@ COPY src ./src
 COPY tsconfig.json ./
 RUN bun build --compile --minify --target=bun src/index.ts --outfile=dist/server
 
-# Minimal runtime image — just the binary
+# Minimal runtime image — binary + C++ runtime libs required by Bun
 FROM alpine:3.21 AS release
 WORKDIR /app
+
+RUN apk add --no-cache libstdc++ libgcc
 
 COPY --from=build /app/dist/server ./server
 
