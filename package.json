@@ -1,0 +1,28 @@
+{
+  "name": "research-landscape-mapper",
+  "version": "1.0.0",
+  "description": "MCP tool that synthesizes complete research landscape maps from academic literature",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "query": "bun run src/cli.ts",
+    "compile": "bun build --compile --minify --target=bun src/index.ts --outfile=dist/server"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/express": "^5.0.6"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@ctxprotocol/sdk": "^0.8.4",
+    "@google/genai": "^1.44.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "express": "^5.2.1",
+    "zod": "^4.3.6"
+  }
+}

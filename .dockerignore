@@ -1,0 +1,8 @@
+.env
+.env.*
+node_modules
+outputs/
+dist/
+*.md
+.claude
+.gitignore
