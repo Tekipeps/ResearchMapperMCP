@@ -34,7 +34,7 @@ const inputSchema = {
     .min(2)
     .max(200)
     .describe(
-      "The research topic or field to map (e.g. 'transformer neural networks', 'CRISPR gene editing', 'quantum error correction')",
+      "The research topic to map. Examples: 'transformer neural networks', 'CRISPR gene editing', 'quantum error correction', 'mRNA vaccine delivery', 'federated learning privacy', 'large language model alignment'. Can be a specific technique, broad field, or interdisciplinary area.",
     ),
   depth: z
     .enum(["quick", "standard", "deep"])
@@ -135,7 +135,7 @@ function createServer(): McpServer {
     {
       title: "Research Landscape Mapper",
       description:
-        "Given any research topic, synthesizes a complete landscape map: foundational papers, prolific authors & institutions, citation clusters/schools of thought, publication trends, emerging themes, interdisciplinary connections, and strategic insights. Replaces SciVal/InCites analytics.",
+        "Maps the academic research landscape for any topic using OpenAlex and Semantic Scholar bibliometric data, synthesized by AI. Returns a structured report with: foundational papers (title, DOI, citation count, why foundational), prolific authors (h-index, institution, country), citation clusters (schools of thought), publication trends (year-over-year growth rates), emerging themes (momentum scores 1-10), interdisciplinary connections (method/application overlaps), and 5 strategic insights. Replaces SciVal/InCites analytics. Depth modes: quick (5yr/30 papers ~15s), standard (10yr/60 papers ~20s), deep (15yr/100 papers ~25s).",
       inputSchema,
       outputSchema,
       _meta: {
@@ -143,7 +143,13 @@ function createServer(): McpServer {
         queryEligible: true,
         latencyClass: "slow",
         pricing: {
-          executeUsd: "0.1",
+          queryUsd: "0.05",
+        },
+        rateLimit: {
+          maxRequestsPerMinute: 10,
+          maxConcurrency: 3,
+          cooldownMs: 6000,
+          notes: "Analysis takes 15-25s. Use depth='quick' for throughput. Standard depth recommended.",
         },
       },
     },
@@ -170,6 +176,15 @@ function createServer(): McpServer {
           timeoutPromise,
         ]);
 
+        // Guard: CTX structuredContent limit ~50KB. Trim arrays on oversized deep-mode responses.
+        const resultJson = JSON.stringify(result);
+        if (resultJson.length > 45_000) {
+          (result as unknown as Record<string, unknown>)["foundational_papers"] =
+            ((result as unknown as Record<string, unknown>)["foundational_papers"] as unknown[]).slice(0, 6);
+          (result as unknown as Record<string, unknown>)["prolific_authors"] =
+            ((result as unknown as Record<string, unknown>)["prolific_authors"] as unknown[]).slice(0, 5);
+        }
+
         return {
           structuredContent: result as unknown as Record<string, unknown>,
           content: [{ type: "text" as const, text: JSON.stringify(result) }],
@@ -177,7 +192,7 @@ function createServer(): McpServer {
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         return {
-          structuredContent: { error: true },
+          structuredContent: { error: true, message: msg },
           content: [{ type: "text" as const, text: msg }],
           isError: true,
         } as unknown as CallToolResult;
