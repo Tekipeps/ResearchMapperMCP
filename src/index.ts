@@ -39,7 +39,7 @@ const inputSchema = {
   depth: z
     .enum(["quick", "standard", "deep"])
     .optional()
-    .default("standard")
+    .default("quick")
     .describe(
       "Analysis depth: quick (5yr, 30 papers), standard (10yr, 60 papers), deep (15yr, 100 papers)",
     ),
@@ -135,21 +135,22 @@ function createServer(): McpServer {
     {
       title: "Research Landscape Mapper",
       description:
-        "Maps the academic research landscape for any topic using OpenAlex and Semantic Scholar bibliometric data, synthesized by AI. Returns a structured report with: foundational papers (title, DOI, citation count, why foundational), prolific authors (h-index, institution, country), citation clusters (schools of thought), publication trends (year-over-year growth rates), emerging themes (momentum scores 1-10), interdisciplinary connections (method/application overlaps), and 5 strategic insights. Replaces SciVal/InCites analytics. Depth modes: quick (5yr/30 papers ~15s), standard (10yr/60 papers ~20s), deep (15yr/100 papers ~25s).",
+        "Maps the academic research landscape for any topic. Returns structured, typed bibliometric data from OpenAlex and Semantic Scholar — papers (title, DOI, citation count, authors, concepts), prolific authors (h-index, institution, country, works count), publication trends (year-over-year growth rates), citation clusters, emerging themes (momentum scores), and strategic insights. Designed for both Query mode (AI-synthesized analysis) and Execute mode (structured arrays for programmatic iteration by developer agents). Replaces SciVal/InCites analytics. Depth modes: quick (5yr/30 papers), standard (10yr/60 papers), deep (15yr/100 papers).",
       inputSchema,
       outputSchema,
       _meta: {
         surface: "both",
-        queryEligible: true,
+        executeEligible: true,
         latencyClass: "slow",
         pricing: {
-          queryUsd: "0.05",
+          executeUsd: "0.10",
         },
         rateLimit: {
           maxRequestsPerMinute: 10,
           maxConcurrency: 3,
           cooldownMs: 6000,
-          notes: "Analysis takes 15-25s. Use depth='quick' for throughput. Standard depth recommended.",
+          notes:
+            "Query mode: 15-25s (AI synthesis). Execute mode: same structured data for programmatic iteration. Use depth='quick' for throughput.",
         },
       },
     },
@@ -179,10 +180,18 @@ function createServer(): McpServer {
         // Guard: CTX structuredContent limit ~50KB. Trim arrays on oversized deep-mode responses.
         const resultJson = JSON.stringify(result);
         if (resultJson.length > 45_000) {
-          (result as unknown as Record<string, unknown>)["foundational_papers"] =
-            ((result as unknown as Record<string, unknown>)["foundational_papers"] as unknown[]).slice(0, 6);
-          (result as unknown as Record<string, unknown>)["prolific_authors"] =
-            ((result as unknown as Record<string, unknown>)["prolific_authors"] as unknown[]).slice(0, 5);
+          (result as unknown as Record<string, unknown>)[
+            "foundational_papers"
+          ] = (
+            (result as unknown as Record<string, unknown>)[
+              "foundational_papers"
+            ] as unknown[]
+          ).slice(0, 6);
+          (result as unknown as Record<string, unknown>)["prolific_authors"] = (
+            (result as unknown as Record<string, unknown>)[
+              "prolific_authors"
+            ] as unknown[]
+          ).slice(0, 5);
         }
 
         return {
