@@ -228,7 +228,7 @@ app.get("/health", (_req, res) => {
 // MCP endpoint — POST only (stateless StreamableHTTP)
 app.post(
   "/mcp",
-  // createContextMiddleware(),
+  createContextMiddleware(),
   async (req, res) => {
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined, // stateless
