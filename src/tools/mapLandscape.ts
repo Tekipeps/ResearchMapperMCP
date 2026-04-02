@@ -91,7 +91,7 @@ export async function mapResearchLandscape(
     data_coverage: {
       total_papers_analyzed: works.length,
       year_range: `${yearFrom}–${new Date().getFullYear()}`,
-      sources: ["OpenAlex", "Semantic Scholar"],
+      sources: ["academic databases"],
     },
   };
 }

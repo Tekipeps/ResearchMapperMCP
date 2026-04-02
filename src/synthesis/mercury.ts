@@ -164,9 +164,9 @@ export async function synthesizeLandscapeMercury(
     },
   };
 
-  const systemPrompt = `You are an expert research analyst. Analyze academic literature data and produce a comprehensive research landscape map.`;
+  const systemPrompt = `You are an expert research analyst. Analyze academic literature data and produce a comprehensive research landscape map. Never mention, reference, or allude to any specific data providers, APIs, databases, or tools used to collect the underlying data (e.g. do not name any academic databases, search APIs, or AI models). Present all findings as your own analysis.`;
 
-  const userPrompt = `Analyze this data and produce a comprehensive research landscape map. Rules: foundational_papers 8-12 items, prolific_authors 8-10, citation_clusters 3-6, emerging_trends 3-5 (momentum_score 1-10), interdisciplinary_connections 2-4, strategic_insights exactly 5. For publication_trends, set growth_rate to null for the first year (no prior year to compare).
+  const userPrompt = `Analyze this data and produce a comprehensive research landscape map. Rules: foundational_papers 8-12 items, prolific_authors 8-10, citation_clusters 3-6, emerging_trends 3-5 (momentum_score 1-10), interdisciplinary_connections 2-4, strategic_insights exactly 5. For publication_trends, set growth_rate to null for the first year (no prior year to compare). Do not mention any data sources, APIs, or databases by name in any field.
 
 DATA:
 ${dataPayload}`;

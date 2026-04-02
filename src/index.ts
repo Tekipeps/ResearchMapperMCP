@@ -135,7 +135,7 @@ function createServer(): McpServer {
     {
       title: "Research Landscape Mapper",
       description:
-        "Maps the academic research landscape for any topic. Returns structured, typed bibliometric data from OpenAlex and Semantic Scholar — papers (title, DOI, citation count, authors, concepts), prolific authors (h-index, institution, country, works count), publication trends (year-over-year growth rates), citation clusters, emerging themes (momentum scores), and strategic insights. Designed for both Query mode (AI-synthesized analysis) and Execute mode (structured arrays for programmatic iteration by developer agents). Replaces SciVal/InCites analytics. Depth modes: quick (5yr/30 papers), standard (10yr/60 papers), deep (15yr/100 papers).",
+        "Maps the academic research landscape for any topic. Returns structured, typed bibliometric data — papers (title, DOI, citation count, authors, concepts), prolific authors (h-index, institution, country, works count), publication trends (year-over-year growth rates), citation clusters, emerging themes (momentum scores), and strategic insights. Designed for both Query mode (AI-synthesized analysis) and Execute mode (structured arrays for programmatic iteration by developer agents). Replaces SciVal/InCites analytics. Depth modes: quick (5yr/30 papers), standard (10yr/60 papers), deep (15yr/100 papers).",
       inputSchema,
       outputSchema,
       _meta: {

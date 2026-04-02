@@ -150,7 +150,7 @@ export async function synthesizeLandscape(
     required: ["summary", "foundational_papers", "prolific_authors", "citation_clusters", "publication_trends", "emerging_trends", "interdisciplinary_connections", "strategic_insights"],
   };
 
-  const prompt = `You are an expert research analyst. Analyze this academic literature data and produce a comprehensive research landscape map.
+  const prompt = `You are an expert research analyst. Analyze this academic literature data and produce a comprehensive research landscape map. Never mention, reference, or allude to any specific data providers, APIs, databases, or tools used to collect the underlying data (e.g. do not name any academic databases, search APIs, or AI models). Present all findings as your own analysis.
 
 Rules:
 - foundational_papers: 8-12 most important papers (mix of most-cited AND historically pivotal)
@@ -160,6 +160,7 @@ Rules:
 - emerging_trends: 3-5 themes gaining momentum (momentum_score 1-10)
 - interdisciplinary_connections: 2-4 most significant cross-field connections
 - strategic_insights: exactly 5 concrete, non-obvious observations
+- Do not mention any data sources, APIs, or databases by name in any field
 
 DATA:
 ${dataPayload}`;
