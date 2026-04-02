@@ -226,27 +226,23 @@ app.get("/health", (_req, res) => {
 });
 
 // MCP endpoint — POST only (stateless StreamableHTTP)
-app.post(
-  "/mcp",
-  // createContextMiddleware(),
-  async (req, res) => {
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined, // stateless
-    });
+app.post("/mcp", createContextMiddleware(), async (req, res) => {
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: undefined, // stateless
+  });
 
-    try {
-      const server = createServer();
-      await server.connect(transport);
-      await transport.handleRequest(req, res, req.body);
-      res.on("finish", () => server.close());
-    } catch (err) {
-      console.error("MCP handler error:", err);
-      if (!res.headersSent) {
-        res.status(500).json({ error: "Internal server error" });
-      }
+  try {
+    const server = createServer();
+    await server.connect(transport);
+    await transport.handleRequest(req, res, req.body);
+    res.on("finish", () => server.close());
+  } catch (err) {
+    console.error("MCP handler error:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Internal server error" });
     }
-  },
-);
+  }
+});
 
 // SSE / session endpoints — not supported in stateless mode
 app.get("/mcp", (_req, res) => {
